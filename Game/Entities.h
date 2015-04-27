@@ -6,16 +6,15 @@ using namespace std;
 
 enum IDS{PLAYER,TERRAIN,ENEMY,PICKUP,PROJECTILE};
 
-class entity{//virtual class all entities will inherit from
+class Entity{//Virtual class all entities inherit from
 private:
-
 protected:
 	int pos_x;
 	int pos_y;
 	int speed_x;
 	int speed_y;
 	
-	bool active;//is the entity actively being used?
+	bool active=false;//is the entity actively being used?
 	int hitboxRadius;//defines radius (for a square) for entity collision detection
 	int ID;
 
@@ -24,7 +23,21 @@ protected:
 	int animationFrameHeight;//this is the height of bitmap region
 	ALLEGRO_BITMAP *image;
 public:
+	Entity();
+	virtual ~Entity() = 0;
 	virtual void draw() = 0;
-	virtual void update() = 0;
+	virtual void update() = 0;//updates entity
 };
+
+class Enemy:public Entity{//class with entity
+private:
+protected:
+	int hitpoints;
+	int damage;
+	int type;//specifies type of enemy (eg archer, boss, peon etc)
+public:
+	Enemy();
+	~Enemy();
+};
+
 #endif
