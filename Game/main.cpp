@@ -4,19 +4,30 @@
 #include <allegro5/allegro_image.h>
 #include "Entities.h"
 
+//Global Enumerations
+enum KEYS { UP, DOWN, LEFT, RIGHT, ESCAPE };
+
 int main(int argc, char **argv)
 {
+	//Function Prototype Declarations
+	void KeyPressEventHandler(ALLEGRO_EVENT *, bool[]);
+
+	//Variable Declarations
 	//Display width & height, can move to a header file later.
 	const int DISPLAY_HEIGHT = 600;
 	const int DISPLAY_WIDTH = 800;
 	const int FPS = 60; //Framerate
 
+	//Control Variables
 	bool game_done = false; // used for game loop
 	bool redraw = false; // used for rendering
+	bool keys[5] = { false, false, false, false, false }; //Holds the state of the Movement Keys
 
+	//ALLEGRO VARIABLE INITIALISATIONS
 	ALLEGRO_DISPLAY *display = NULL; //Pointer to display.
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL; //Pointer to event queue
 	ALLEGRO_TIMER *timer = NULL; //Pointer to timer
+	ALLEGRO_MOUSE_STATE mouseState; //Will Hold the state of the mouse when applicable
 
 	//Initialise allegro, if unsuccesful, show error.
 	if (!al_init())
@@ -64,8 +75,10 @@ int main(int argc, char **argv)
 	}
 
 	//Register Event Sources
-	al_register_event_source(event_queue, al_get_timer_event_source(timer)); // timer events
-	al_register_event_source(event_queue, al_get_display_event_source(display)); //display events
+	al_register_event_source(event_queue, al_get_timer_event_source(timer));	 //Timer events
+	al_register_event_source(event_queue, al_get_display_event_source(display)); //Display events
+	al_register_event_source(event_queue, al_get_keyboard_event_source());		 //Keyboard Events
+	al_register_event_source(event_queue, al_get_mouse_event_source());			 //Mouse Events
 
 
 
@@ -76,23 +89,34 @@ int main(int argc, char **argv)
 
 	while (!game_done)
 	{
-		ALLEGRO_EVENT ev;
+		ALLEGRO_EVENT ev; //Game Event
 		al_wait_for_event(event_queue, &ev); // wait for event
 
-		if (ev.type == ALLEGRO_EVENT_TIMER)
+		if (ev.type == ALLEGRO_EVENT_TIMER) //Capture Timer "Tick"
 		{
-
 			redraw = true;
 			//Update code goes here
 		}
 
+		//Capture Key Presses
+		else if ((ev.type == ALLEGRO_EVENT_KEY_DOWN) || (ev.type == ALLEGRO_EVENT_KEY_UP))
+		{
+			KeyPressEventHandler(&ev, keys);
+		}
+
+		//Capture the Mouse State
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN || ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+		{
+			al_get_mouse_state(&mouseState);
+		}
+
 		// Capture close windows event
-		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			game_done = true;
 
 
 		//Rendering
-		if (redraw && al_is_event_queue_empty(event_queue)) //have to wait until event queue is empty befor redrawing.
+		if (redraw && al_is_event_queue_empty(event_queue)) //have to wait until event queue is empty before redrawing.
 		{
 			redraw = false;
 
@@ -112,4 +136,55 @@ int main(int argc, char **argv)
 	al_destroy_display(display);
 
 	return 0;
+}
+
+void KeyPressEventHandler(ALLEGRO_EVENT *gameEvent, bool KBRDKEYS[])
+{
+	if (gameEvent->type == ALLEGRO_EVENT_KEY_DOWN)
+	{
+		switch (gameEvent->keyboard.keycode)
+		{
+		case ALLEGRO_KEY_UP:
+		case ALLEGRO_KEY_W:
+			KBRDKEYS[UP] = true;
+			break;
+		case ALLEGRO_KEY_DOWN:
+		case ALLEGRO_KEY_S:
+			KBRDKEYS[DOWN] = true;
+			break;
+		case ALLEGRO_KEY_LEFT:
+		case ALLEGRO_KEY_A:
+			KBRDKEYS[LEFT] = true;
+			break;
+		case ALLEGRO_KEY_RIGHT:
+		case ALLEGRO_KEY_D:
+			KBRDKEYS[RIGHT] = true;
+			break;
+		}
+	}
+	else if (gameEvent->type == ALLEGRO_EVENT_KEY_UP)
+	{
+		switch (gameEvent->keyboard.keycode)
+		{
+		case ALLEGRO_KEY_UP:
+		case ALLEGRO_KEY_W:
+			KBRDKEYS[UP] = false;
+			break;
+		case ALLEGRO_KEY_DOWN:
+		case ALLEGRO_KEY_S:
+			KBRDKEYS[DOWN] = false;
+			break;
+		case ALLEGRO_KEY_LEFT:
+		case ALLEGRO_KEY_A:
+			KBRDKEYS[LEFT] = false;
+			break;
+		case ALLEGRO_KEY_RIGHT:
+		case ALLEGRO_KEY_D:
+			KBRDKEYS[RIGHT] = false;
+			break;
+		case ALLEGRO_KEY_ESCAPE:
+			KBRDKEYS[ESCAPE] = true;
+			break;
+		}
+	}
 }
